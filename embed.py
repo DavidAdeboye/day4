@@ -1,6 +1,6 @@
 import pandas as pd
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 import os
 
 def embed_data():
