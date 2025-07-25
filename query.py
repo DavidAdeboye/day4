@@ -1,20 +1,19 @@
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+import chromadb
 
 def predict_emoji(text, k=1):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-    vectorstore = Chroma(
-        embedding_function=embeddings,
-        collection_name="emoji_vectors",
-        persist_directory="vector_store"
-    )
-    
-    retriever = vectorstore.as_retriever(search_kwargs={"k": k})
-    results = retriever.invoke(text)
+    client = chromadb.PersistentClient(path="vector_store")
+    collection = client.get_collection(name="emoji_vectors")
 
-    if results:
-        return [doc.metadata["emoji"] for doc in results]
+    query_embedding = embeddings.embed_query(text)
+
+    results = collection.query(query_embeddings=[query_embedding], n_results=k)
+
+    if results["metadatas"] and len(results["metadatas"][0]) > 0:
+        return [meta["emoji"] for meta in results["metadatas"][0]]
     else:
         return ["🤷‍♂️"]
 
